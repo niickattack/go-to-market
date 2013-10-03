@@ -6,7 +6,7 @@ form = """
 	<br>
 	<br>
 	<label> Month
-	<input type = 'text' name = 'month'>
+	<input type = 'text' name = 'month' current_phase_filter[] = delivered>
 	</label>
 	<label> Day
 	<input type = 'text' name = 'day'>
@@ -25,6 +25,7 @@ class MainHandler(webapp2.RequestHandler):
         self.response.out.write(form)
 
     def post(self):
+    	user_month = valid_month(self.request.get)
     	self.response.out.write("Thanks! That's a totally valid day!")
 
 app = webapp2.WSGIApplication([
