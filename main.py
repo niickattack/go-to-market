@@ -15,6 +15,7 @@ form = """
 	<input type = 'text' name = 'year'>
 	</label>
 	<br>
+	<br>
 	<input type = 'submit'>
 </form>
 """
