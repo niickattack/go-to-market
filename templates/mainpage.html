@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Go To Market Blog</title>
+	</head>
+
+
+	<body>
+		<h1>Go To Market Blog</h1>
+
+		<hr>
+		
+		{% for posti in postis %}
+			<div class="posti">
+				<div class="posti-subject">{{posti.subject}}</div>
+				<pre class="posti-content">{{posti.content}}</pre>
+			</div>
+		{% endfor%}
+
+
+
+	</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Go To Market Blog</title>
+	</head>
+
+
+	<body>
+		<h1>Go To Market Blog</h1>
+
+		<form method="post">
+			<label>
+				<div>subject</div>
+				<input type="text" name="subject" value="{{subject}}">
+			</label>
+
+			<label>
+				<div>content</div>
+				<textarea name="content">{{content}}</textarea>
+			</label>
+
+			<div class="error">{{error}}</div>
+
+			<input type="submit">
+		</form>
+
+		<hr>
+		
+		{% for posti in postis %}
+			<div class="posti">
+				<div class="posti-subject">{{posti.subject}}</div>
+				<pre class="posti-content">{{posti.content}}</pre>
+			</div>
+		{% endfor%}
+
+
+
+	</body>
+</html>

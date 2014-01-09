@@ -1,67 +1,67 @@
+import os
 import webapp2
+import jinja2
 
-form = """
-<form method = "post">
-	What is your birthday?
-	<label> Month
-	<input type = 'text' name = 'month'>
-	</label>
-	<label> Day
-	<input type = 'text' name = 'day'>
-	</label>
-	<label> Year
-	<input type = 'text' name = 'year'>
-	</label>
-	<input type = 'submit'>
-</form>
-"""
+from google.appengine.ext import db
+from time import sleep
+
+template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
+                                autoescape = True)
+
+class Handler(webapp2.RequestHandler):
+    def write(self, *a, **lw):
+        self.response.out.write(*a, **lw)
+
+    def render_str(self, template, **params):
+        t = jinja_env.get_template(template)
+        return t.render(params)
+
+    def render(self, template, **kw):
+        self.write(self.render_str(template, **kw))
+
+class Posti(db.Model):
+    subject = db.StringProperty(required = True)
+    content = db.TextProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
 
 
-months = ['January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December']
+class NewPostPage(Handler):
+    def render_front(self, subject="", content="", error=""):
+        self.render("front.html", subject=subject, content=content, error=error)
 
-def valid_month(month):
-  if month:
-    cap_month = month.capitalize()
-    if cap_month in months:
-      return cap_month
-
-def valid_day(day):
-  if day and day.isdigit():
-    day = int(day)
-    if day >= 1 and day <= 31:
-      return day
-
-def valid_year(year):
-  if year and year.isdigit():
-    if int(year) >= 1900 and int(year) <=2020:
-      return int(year)
-
-class MainHandler(webapp2.RequestHandler):
+    def render_perma(self, subject="", content="", link=""):
+        self.redirect("/?link=" + link)
 
     def get(self):
-        self.response.out.write(form)
-
+        self.render_front()
 
     def post(self):
-      user_month = valid_month(self.request.get('month'))
-      user_day = valid_day(self.request.get('day'))
-      user_year = valid_year(self.request.get('year'))
-      if not (user_month and user_day and user_year):
-        self.response.out.write(form)
-      else:
-        self.response.out.write('Thanks!  That"s a totally valid day')
+        subject = self.request.get("subject")
+        content = self.request.get("content")
 
-app = webapp2.WSGIApplication([
-	('/', MainHandler),
-	], debug=True)
+        if subject and content:
+            a = Posti(subject = subject, content = content)
+            a.put()
+            link = str(a.key().id())
+            sleep(1)
+            self.render_perma(subject=subject, content=content, link=link)
+        else:
+            error = "we need both a subject and some content!"
+            self.render_front(subject=subject, content=content, error=error)
+
+class MainHandler(Handler):
+    def render_front(self, subject="", content="", error=""):
+        postis = db.GqlQuery("SELECT * FROM Posti ORDER BY created DESC")
+        self.render("mainpage.html", postis=postis)
+
+    def get(self):
+        self.render_front()
+
+class PermaLink(Handler):
+    def render_front(self, link=""):
+        Posti.get_by_id(link)
+        self.render("perma.html")
+
+
+app = webapp2.WSGIApplication([('/', MainHandler), ('/newpost', NewPostPage), (r'/(\d+)', PermaLink)], debug=True)
